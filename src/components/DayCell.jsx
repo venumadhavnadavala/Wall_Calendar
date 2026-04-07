@@ -1,5 +1,6 @@
 import React from "react";
 import { format } from "date-fns";
+import { motion } from "framer-motion";
 import { HOLIDAYS } from "../utils/themes";
 
 export default function DayCell({
@@ -16,102 +17,72 @@ export default function DayCell({
 }) {
   const dateNum = format(day, "d");
   const monthNum = format(day, "M");
-  const holidayKey = `${monthNum}-${dateNum}`;
-  const holiday = HOLIDAYS[holidayKey];
-  const dow = day.getDay(); // 0=Sun
+  const holiday = HOLIDAYS[`${monthNum}-${dateNum}`];
+  const dow = day.getDay();
   const isWeekend = dow === 0 || dow === 6;
-
   // ── Determine visual state ────────────────────────────────────────────────
   const isSelected = isStart || isEnd;
-  const isRangeEdge = isStart || isEnd;
 
-  // Range highlight background (the band across)
-  let rangeBg = "transparent";
-  if (isInRange) rangeBg = theme.accentLight;
-  else if (isStart && !isEnd) rangeBg = "transparent"; // single date
-
-  // Range rounding: left cap for start, right cap for end, square middle
-  let rangeRoundClass = "";
-  if (isStart && isEnd) rangeRoundClass = "";
-  else if (isStart) rangeRoundClass = "rounded-l-full";
-  else if (isEnd) rangeRoundClass = "rounded-r-full";
+  // Determine exactly how the background band stretches
+  let rangeClasses = "";
+  if (isStart && isEnd) {
+    rangeClasses = "hidden"; // No band needed for a single day, just the circle
+  } else if (isStart) {
+    rangeClasses = "rounded-l-full left-1/2 right-0"; // Start from center, stretch to right edge
+  } else if (isEnd) {
+    rangeClasses = "rounded-r-full right-1/2 left-0"; // Stretch from left edge to center
+  } else if (isInRange) {
+    rangeClasses = "left-0 right-0"; // Stretch fully edge-to-edge
+  }
 
   return (
     <div
-      className="relative flex flex-col items-center"
+      className="relative flex items-center justify-center h-10 w-full"
       onMouseEnter={onMouseEnter}
       onClick={onClick}
     >
-      {/* Range band (behind the circle) */}
+      {/* PERFECTLY SEAMLESS RANGE BAND */}
       {(isInRange || (isStart && !isEnd) || (isEnd && !isStart)) && (
         <div
-          className={`absolute inset-y-0 left-0 right-0 ${rangeRoundClass}`}
+          className={`absolute h-9 ${rangeClasses}`}
           style={{
-            background: isInRange
-              ? theme.accentLight
-              : (isStart || isEnd) && !isStart !== !isEnd
-              ? theme.accentLight
-              : "transparent",
-            top: "4px",
-            bottom: "4px",
+            background: theme.accentLight,
+            zIndex: 0
           }}
         />
       )}
 
-      {/* Day number circle */}
-      <button
+      {/* DAY BUTTON */}
+      <motion.button
+        whileTap={!isOtherMonth ? { scale: 0.85 } : {}}
+        transition={{ type: "spring", stiffness: 400, damping: 17 }}
         className={[
-          "relative z-10 w-9 h-9 flex items-center justify-center rounded-full",
-          "text-sm transition-all duration-150 select-none",
+          "relative z-10 w-9 h-9 flex items-center justify-center rounded-full text-sm transition-colors duration-150 select-none",
           "focus:outline-none focus-visible:ring-2",
-          isSelected
-            ? "text-white font-semibold shadow-md"
-            : isToday
-            ? "font-bold ring-2"
-            : isOtherMonth
-            ? "text-neutral-300 cursor-default"
-            : isWeekend
-            ? "font-medium"
-            : "font-normal",
-          !isSelected && !isOtherMonth
-            ? "hover:bg-neutral-100 cursor-pointer"
-            : "",
+          isSelected ? "text-white font-semibold shadow-md" 
+            : isToday ? "font-bold ring-2 bg-white"
+            : isOtherMonth ? "text-neutral-300 cursor-default"
+            : isWeekend ? "font-medium bg-transparent" : "font-normal bg-transparent",
+          !isSelected && !isOtherMonth ? "hover:bg-neutral-100 cursor-pointer" : "",
         ].join(" ")}
         style={{
-          background: isSelected ? theme.accent : undefined,
-          color: isSelected
-            ? "white"
-            : isOtherMonth
-            ? "#d1c9c0"
-            : isWeekend
-            ? theme.accent
-            : "#1a1a1a",
+          background: isSelected ? theme.accent : isToday ? "white" : undefined,
+          color: isSelected ? "white" : isOtherMonth ? "#d1c9c0" : isWeekend ? theme.accent : "#1a1a1a",
           ringColor: isToday ? theme.accent : undefined,
-          boxShadow: isSelected
-            ? `0 2px 8px ${theme.accent}55`
-            : undefined,
+          boxShadow: isSelected ? `0 4px 12px ${theme.accent}55` : undefined,
         }}
         aria-label={format(day, "MMMM d, yyyy")}
         title={holiday || undefined}
       >
         {dateNum}
-      </button>
+      </motion.button>
 
-      {/* Holiday dot */}
+      {/* INDICATORS (Positioned so they don't overlap) */}
       {holiday && !isOtherMonth && (
-        <div
-          className="absolute bottom-0.5 w-1 h-1 rounded-full"
-          style={{ background: isSelected ? "rgba(255,255,255,0.8)" : theme.accent }}
-          title={holiday}
-        />
+        <div className="absolute top-0.5 right-0.5 w-1.5 h-1.5 rounded-full" style={{ background: theme.accent }} />
       )}
-
-      {/* Note indicator */}
       {hasNote && !isOtherMonth && (
-        <div
-          className="absolute top-0.5 right-1 w-1.5 h-1.5 rounded-full"
-          style={{ background: theme.accent, opacity: 0.75 }}
-        />
+        <div className="absolute bottom-0.5 w-1 h-1 rounded-full ring-2 ring-white" style={{ background: theme.accentDark }} />
       )}
     </div>
   );

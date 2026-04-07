@@ -3,6 +3,7 @@ import { format, addMonths, subMonths, endOfMonth, eachDayOfInterval, startOfMon
 import { ChevronLeft, ChevronRight, CalendarDays, X } from "lucide-react";
 import { DAYS_OF_WEEK, MONTHS } from "../utils/themes";
 import DayCell from "./DayCell";
+import { motion, AnimatePresence } from "framer-motion";
 
 export default function CalendarGrid({
   currentDate,
@@ -131,68 +132,72 @@ export default function CalendarGrid({
         </div>
       )}
 
-      {/* Day-of-week headers */}
-      <div className={`grid grid-cols-7 ${animClass}`}>
-        {DAYS_OF_WEEK.map((d) => (
-          <div
-            key={d}
-            className="text-center text-xs font-mono font-medium tracking-wider pb-2"
-            style={{
-              color:
-                d === "Sat" || d === "Sun"
-                  ? theme.accent
-                  : "#9a9080",
-            }}
+{/* Animated Grid Container */}
+      <div className="relative flex-1 overflow-hidden">
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={currentDate.toISOString()} // This key tells Framer Motion when the month changes
+            initial={{ opacity: 0, x: slideDir === "left" ? 30 : slideDir === "right" ? -30 : 0 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: slideDir === "left" ? -30 : slideDir === "right" ? 30 : 0 }}
+            transition={{ duration: 0.25, ease: "easeInOut" }}
+            className="absolute inset-0"
           >
-            {d}
-          </div>
-        ))}
+            {/* Day-of-week headers */}
+            <div className="grid grid-cols-7 mb-2">
+              {DAYS_OF_WEEK.map((d) => (
+                <div
+                  key={d}
+                  className="text-center text-xs font-mono font-medium tracking-wider pb-2"
+                  style={{
+                    color: d === "Sat" || d === "Sun" ? theme.accent : "#9a9080",
+                  }}
+                >
+                  {d}
+                </div>
+              ))}
+            </div>
 
-        {/* Day cells */}
-        {allCells.map((day, i) => {
-          const isOther = i < prefixBlanks || i >= prefixBlanks + daysInMonth.length;
-          return (
-            <DayCell
-              key={day.toISOString()}
-              day={day}
-              isStart={isStart(day)}
-              isEnd={isEnd(day)}
-              isInRange={isInRange(day)}
-              isToday={isToday(day)}
-              hasNote={hasNote(day)}
-              theme={theme}
-              isOtherMonth={isOther}
-              onMouseEnter={() => !isOther && setHoverDate(day)}
-              onClick={() => !isOther && handleDayClick(day)}
-            />
-          );
-        })}
+            {/* Day cells */}
+            <div className="grid grid-cols-7 gap-y-1">
+              {allCells.map((day, i) => {
+                const isOther = i < prefixBlanks || i >= prefixBlanks + daysInMonth.length;
+                return (
+                  <DayCell
+                    key={day.toISOString()}
+                    day={day}
+                    isStart={isStart(day)}
+                    isEnd={isEnd(day)}
+                    isInRange={isInRange(day)}
+                    isToday={isToday(day)}
+                    hasNote={hasNote(day)}
+                    theme={theme}
+                    isOtherMonth={isOther}
+                    onMouseEnter={() => !isOther && setHoverDate(day)}
+                    onClick={() => !isOther && handleDayClick(day)}
+                  />
+                );
+              })}
+            </div>
+          </motion.div>
+        </AnimatePresence>
       </div>
 
       {/* Legend */}
-      <div className="flex items-center gap-4 text-xs font-mono mt-auto pt-2 border-t border-neutral-100">
-        <span className="flex items-center gap-1.5 text-neutral-400">
-          <span
-            className="w-2.5 h-2.5 rounded-full inline-block"
-            style={{ background: theme.accent }}
-          />
+      <div className="flex items-center gap-4 text-xs font-mono mt-auto pt-4 border-t border-neutral-100 opacity-60 relative z-10">
+        <span className="flex items-center gap-1.5 text-neutral-500">
+          <span className="w-2.5 h-2.5 rounded-full inline-block" style={{ background: theme.accent }} />
           Weekend
         </span>
-        <span className="flex items-center gap-1.5 text-neutral-400">
-          <span
-            className="w-2.5 h-2.5 rounded-full inline-block ring-2"
-            style={{ background: "white", ringColor: theme.accent }}
-          />
+        <span className="flex items-center gap-1.5 text-neutral-500">
+          <span className="w-1 h-1 rounded-full inline-block" style={{ background: theme.accent }} />
           Holiday
         </span>
-        <span className="flex items-center gap-1.5 text-neutral-400">
-          <span
-            className="w-2 h-2 rounded-full inline-block"
-            style={{ background: theme.accent, opacity: 0.7 }}
-          />
-          Has note
+        <span className="flex items-center gap-1.5 text-neutral-500">
+          <span className="w-1.5 h-1.5 rounded-full inline-block ring-1" style={{ background: theme.accent, ringColor: theme.accent }} />
+          Note
         </span>
       </div>
-    </div>
+      </div>
   );
 }

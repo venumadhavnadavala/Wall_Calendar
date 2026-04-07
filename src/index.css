@@ -31,15 +31,32 @@ body {
 }
 
 /* Spiral binding effect */
+/* Update these inside index.css */
+/* Sleek Wire-O Binding Effect */
 .spiral-dot {
-  width: 18px;
-  height: 18px;
+  width: 10px;
+  height: 10px;
   border-radius: 50%;
-  background: #c8b8a2;
-  border: 3px solid #a89880;
-  box-shadow: inset 0 2px 3px rgba(0, 0, 0, 0.25),
-    0 1px 2px rgba(255, 255, 255, 0.5);
+  background: #2a2a2a; /* The punched hole */
+  box-shadow: inset 0 2px 4px rgba(0,0,0,0.8), 0 1px 0 rgba(255,255,255,0.8);
   position: relative;
+  margin-top: 8px; /* Push down slightly into the paper */
+}
+
+/* The metallic wire */
+.spiral-dot::before {
+  content: "";
+  position: absolute;
+  top: -16px; /* Extends upward */
+  left: 2px;
+  width: 6px;
+  height: 22px;
+  border-radius: 3px;
+  background: linear-gradient(90deg, #d4d4d4 0%, #ffffff 40%, #a3a3a3 100%);
+  box-shadow: 
+    -1px 2px 3px rgba(0,0,0,0.3), /* Wire shadow on paper */
+    inset 1px 0 2px rgba(255,255,255,0.9); /* Highlight */
+  z-index: 10;
 }
 
 .spiral-dot::after {

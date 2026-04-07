@@ -11,164 +11,78 @@ export default function WallCalendar() {
 
   return (
     <div
-      className="min-h-screen flex items-center justify-center p-4 md:p-8 transition-colors duration-700"
-      style={{
-        background: `radial-gradient(ellipse at 60% 40%, ${theme.accentLight}88 0%, #f5f0eb 55%)`,
-      }}
+      className="min-h-screen relative flex items-center justify-center p-4 md:p-8 bg-[#faf9f6] overflow-hidden transition-colors duration-700"
     >
-      {/* Calendar card */}
+      {/* Ambient Dynamic Background Glows */}
       <div
-        className="w-full paper-texture shadow-2xl rounded-3xl overflow-hidden relative"
-        style={{
-          maxWidth: 960,
-          boxShadow: `0 32px 80px rgba(0,0,0,0.14), 0 0 0 1px rgba(0,0,0,0.06)`,
-        }}
+        className="absolute top-[-10%] left-[-10%] w-[60vw] h-[60vw] rounded-full mix-blend-multiply filter blur-[120px] opacity-60 transition-colors duration-1000 pointer-events-none"
+        style={{ background: theme.accentLight }}
+      />
+      <div
+        className="absolute bottom-[-10%] right-[-10%] w-[50vw] h-[50vw] rounded-full mix-blend-multiply filter blur-[150px] opacity-40 transition-colors duration-1000 pointer-events-none"
+        style={{ background: theme.accent }}
+      />
+
+      {/* Calendar card (Added backdrop-blur for a frosted glass effect and refined shadows) */}
+      <div
+        className="w-full paper-texture shadow-[0_50px_100px_-20px_rgba(50,50,93,0.15),0_30px_60px_-30px_rgba(0,0,0,0.1),inset_0_-2px_6px_rgba(0,0,0,0.02)] rounded-[2rem] border border-white/60 overflow-hidden relative z-10 backdrop-blur-xl"
+        style={{ maxWidth: 1040 }}
       >
-        {/* Spiral dots row — top of calendar */}
+        {/* Refined Spiral Row */}
         <div
-          className="relative z-20 flex justify-center items-center gap-4 bg-neutral-100"
-          style={{ height: 28, background: "rgba(200,184,162,0.25)" }}
+          className="relative z-20 flex justify-center items-center gap-3 bg-[#f4f1eb] border-b border-[#e5dfd3] shadow-[0_2px_4px_rgba(0,0,0,0.03)]"
+          style={{ height: 32 }}
         >
-          {Array.from({ length: 22 }).map((_, i) => (
+          {Array.from({ length: 16 }).map((_, i) => (
             <div key={i} className="spiral-dot" />
           ))}
         </div>
 
         {/* ── DESKTOP LAYOUT ───────────────────────────────────────────── */}
-        <div className="hidden md:grid" style={{ gridTemplateColumns: "1fr 1fr", minHeight: 560 }}>
-          {/* Left: Hero Image */}
-          <div className="relative overflow-hidden" style={{ minHeight: 420 }}>
-            <HeroVisual
-              theme={theme}
-              themeIndex={cal.themeIndex}
-              setTheme={cal.setTheme}
-            />
-
-            {/* Month overlay on image — bottom right */}
-            <div
-              className="absolute bottom-5 right-5 text-right pointer-events-none"
-            >
-              <div
-                className="text-xs font-mono tracking-widest text-white/80 mb-0.5"
-              >
+        <div className="hidden md:grid relative" style={{ gridTemplateColumns: "1fr 1fr", minHeight: 600 }}>
+          
+          {/* Left: Hero Image + Spine Shadow */}
+          <div className="relative overflow-hidden shadow-[inset_-20px_0_30px_rgba(0,0,0,0.25)] z-10" style={{ minHeight: 460 }}>
+            <HeroVisual theme={theme} themeIndex={cal.themeIndex} setTheme={cal.setTheme} />
+            <div className="absolute bottom-6 right-6 text-right pointer-events-none drop-shadow-md">
+              <div className="text-xs font-mono tracking-widest text-white/90 mb-1">
                 {format(cal.currentDate, "yyyy")}
               </div>
-              <div
-                className="font-display font-black text-white leading-none drop-shadow-lg"
-                style={{ fontSize: "2.2rem" }}
-              >
+              <div className="font-display font-black text-white leading-none" style={{ fontSize: "2.5rem" }}>
                 {format(cal.currentDate, "MMMM").toUpperCase()}
               </div>
             </div>
           </div>
 
-          {/* Right panel: Calendar + Notes stacked */}
-          <div className="flex flex-col divide-y divide-neutral-100">
+          {/* Right: Calendar + Left Inner Spine Shadow */}
+          <div className="flex flex-col divide-y divide-neutral-100 shadow-[inset_15px_0_20px_rgba(0,0,0,0.02)] z-0 bg-white/60">
             <div className="flex-1">
-              <CalendarGrid
-                currentDate={cal.currentDate}
-                today={cal.today}
-                theme={theme}
-                daysInMonth={cal.daysInMonth}
-                prefixBlanks={cal.prefixBlanks}
-                startDate={cal.startDate}
-                endDate={cal.endDate}
-                slideDir={cal.slideDir}
-                isStart={cal.isStart}
-                isEnd={cal.isEnd}
-                isInRange={cal.isInRange}
-                isToday={cal.isToday}
-                hasNote={cal.hasNote}
-                setHoverDate={cal.setHoverDate}
-                handleDayClick={cal.handleDayClick}
-                clearSelection={cal.clearSelection}
-                goNext={cal.goNext}
-                goPrev={cal.goPrev}
-                goToToday={cal.goToToday}
-              />
+              <CalendarGrid {...cal} />
             </div>
-            <div style={{ maxHeight: 280, overflowY: "auto" }} className="notes-scroll">
-              <NotesPanel
-                theme={theme}
-                startDate={cal.startDate}
-                endDate={cal.endDate}
-                noteKey={cal.noteKey}
-                draftNote={cal.draftNote}
-                saveNote={cal.saveNote}
-                savedNotesList={cal.savedNotesList}
-                setDraftNote={cal.setDraftNote}
-              />
+            <div style={{ maxHeight: 320, overflowY: "auto" }} className="notes-scroll">
+              <NotesPanel {...cal} />
             </div>
           </div>
         </div>
 
         {/* ── MOBILE LAYOUT ────────────────────────────────────────────── */}
-        <div className="md:hidden flex flex-col">
-          {/* Hero image — fixed height */}
-          <div className="relative" style={{ height: 220 }}>
-            <HeroVisual
-              theme={theme}
-              themeIndex={cal.themeIndex}
-              setTheme={cal.setTheme}
-            />
-            {/* Month overlay */}
-            <div className="absolute bottom-4 right-4 text-right pointer-events-none">
-              <div className="text-xs font-mono tracking-widest text-white/70 mb-0.5">
+        <div className="md:hidden flex flex-col bg-white/60">
+          <div className="relative" style={{ height: 240 }}>
+            <HeroVisual theme={theme} themeIndex={cal.themeIndex} setTheme={cal.setTheme} />
+            <div className="absolute bottom-4 right-4 text-right pointer-events-none drop-shadow-md">
+              <div className="text-xs font-mono tracking-widest text-white/90 mb-0.5">
                 {format(cal.currentDate, "yyyy")}
               </div>
-              <div
-                className="font-display font-black text-white leading-none drop-shadow-lg"
-                style={{ fontSize: "1.75rem" }}
-              >
+              <div className="font-display font-black text-white leading-none" style={{ fontSize: "2rem" }}>
                 {format(cal.currentDate, "MMMM").toUpperCase()}
               </div>
             </div>
           </div>
-
-          {/* Calendar grid */}
-          <CalendarGrid
-            currentDate={cal.currentDate}
-            today={cal.today}
-            theme={theme}
-            daysInMonth={cal.daysInMonth}
-            prefixBlanks={cal.prefixBlanks}
-            startDate={cal.startDate}
-            endDate={cal.endDate}
-            slideDir={cal.slideDir}
-            isStart={cal.isStart}
-            isEnd={cal.isEnd}
-            isInRange={cal.isInRange}
-            isToday={cal.isToday}
-            hasNote={cal.hasNote}
-            setHoverDate={cal.setHoverDate}
-            handleDayClick={cal.handleDayClick}
-            clearSelection={cal.clearSelection}
-            goNext={cal.goNext}
-            goPrev={cal.goPrev}
-            goToToday={cal.goToToday}
-          />
-
-          {/* Notes */}
+          <CalendarGrid {...cal} />
           <div className="border-t border-neutral-100">
-            <NotesPanel
-              theme={theme}
-              startDate={cal.startDate}
-              endDate={cal.endDate}
-              noteKey={cal.noteKey}
-              draftNote={cal.draftNote}
-              saveNote={cal.saveNote}
-              savedNotesList={cal.savedNotesList}
-              setDraftNote={cal.setDraftNote}
-            />
+            <NotesPanel {...cal} />
           </div>
         </div>
-      </div>
-
-      {/* Subtle footer credit */}
-      <div className="fixed bottom-3 left-0 right-0 flex justify-center pointer-events-none">
-        <span className="text-xs font-mono text-neutral-400/60 tracking-widest">
-          WALL CALENDAR ✦ {format(new Date(), "yyyy")}
-        </span>
       </div>
     </div>
   );
