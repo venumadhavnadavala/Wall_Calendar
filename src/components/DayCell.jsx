@@ -1,7 +1,7 @@
 import React from "react";
 import { format } from "date-fns";
 import { motion } from "framer-motion";
-import { HOLIDAYS, getDayScore } from "../utils/themes";
+import { HOLIDAYS, getMoodColor } from "../utils/themes";
 
 export default function DayCell({
   day,
@@ -10,36 +10,37 @@ export default function DayCell({
   isInRange,
   isToday,
   hasNote,
+  hasMood,
+  moodKey,
   theme,
   onMouseEnter,
   onClick,
   isOtherMonth = false,
-  showDataViz = false,
 }) {
-  const dateNum = format(day, "d");
+  const dateNum  = format(day, "d");
   const monthNum = format(day, "M");
-  const holiday = HOLIDAYS[`${monthNum}-${dateNum}`];
-  const dow = day.getDay();
+  const holiday  = HOLIDAYS[`${monthNum}-${dateNum}`];
+  const dow      = day.getDay();
   const isWeekend = dow === 0 || dow === 6;
   const isSelected = isStart || isEnd;
-  const score = showDataViz ? getDayScore(day) : 0;
+  const moodColor  = moodKey ? getMoodColor(moodKey) : null;
 
   // Range band geometry
-  let rangeLeft = "50%", rangeRight = "0", rangeRadius = "0";
+  let rangeLeft = "50%", rangeRight = "0";
   if (isStart && !isEnd) {
-    rangeLeft = "50%"; rangeRight = "0"; rangeRadius = "0";
+    rangeLeft = "50%"; rangeRight = "0";
   } else if (isEnd && !isStart) {
-    rangeLeft = "0"; rangeRight = "50%"; rangeRadius = "0";
+    rangeLeft = "0"; rangeRight = "50%";
   } else if (isInRange) {
-    rangeLeft = "0"; rangeRight = "0"; rangeRadius = "0";
+    rangeLeft = "0"; rangeRight = "0";
   }
 
-  const showBand = (isInRange || (isStart && !isEnd) || (isEnd && !isStart));
+  const showBand = isInRange || (isStart && !isEnd) || (isEnd && !isStart);
 
   return (
     <div
       className="relative flex flex-col items-center justify-start"
-      style={{ height: showDataViz ? 56 : 44 }}
+      style={{ height: 44 }}
       onMouseEnter={onMouseEnter}
       onClick={onClick}
     >
@@ -53,7 +54,7 @@ export default function DayCell({
             right: rangeRight,
             height: 36,
             background: theme.accentLight,
-            borderRadius: rangeRadius,
+            borderRadius: 0,
             zIndex: 0,
           }}
         />
@@ -96,56 +97,47 @@ export default function DayCell({
         {dateNum}
       </motion.button>
 
-      {/* Data viz bar */}
-      {showDataViz && !isOtherMonth && (
-        <div
-          style={{
-            position: "absolute",
-            bottom: 0,
-            left: "50%",
-            transform: "translateX(-50%)",
-            width: 20,
-            height: 8,
-            background: "#e8e4de",
-            borderRadius: 2,
-            overflow: "hidden",
-            zIndex: 10,
-          }}
-        >
-          <div
-            style={{
-              width: `${score}%`,
-              height: "100%",
-              background: isSelected ? "white" : theme.accentMid || theme.accent + "99",
-              borderRadius: 2,
-              transition: "width 0.3s ease",
-            }}
-          />
-        </div>
-      )}
-
-      {/* Holiday dot */}
+      {/* Holiday dot — top-right corner */}
       {holiday && !isOtherMonth && (
         <div
           className="absolute"
           style={{
-            top: 2,
+            top: 3,
             right: 4,
             width: 5,
             height: 5,
             borderRadius: "50%",
             background: theme.accent,
+            opacity: 0.65,
             zIndex: 12,
           }}
         />
       )}
 
-      {/* Note dot */}
-      {hasNote && !isOtherMonth && (
+      {/* Mood dot — bottom centre (replaces fake productivity bar) */}
+      {hasMood && !isOtherMonth && (
         <div
           style={{
             position: "absolute",
-            bottom: showDataViz ? 9 : 2,
+            bottom: 2,
+            left: "50%",
+            transform: "translateX(-50%)",
+            width: 5,
+            height: 5,
+            borderRadius: "50%",
+            background: moodColor ?? theme.accentMid,
+            border: "1.5px solid white",
+            zIndex: 12,
+          }}
+        />
+      )}
+
+      {/* Note dot — shown when mood dot is absent */}
+      {hasNote && !hasMood && !isOtherMonth && (
+        <div
+          style={{
+            position: "absolute",
+            bottom: 2,
             left: "50%",
             transform: "translateX(-50%)",
             width: 4,

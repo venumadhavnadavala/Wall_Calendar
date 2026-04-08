@@ -14,32 +14,33 @@ import {
 } from "date-fns";
 import { THEMES } from "../utils/themes";
 
-const NOTES_KEY = "wall-calendar-notes-v2";
-const THEME_KEY = "wall-calendar-theme";
+const NOTES_KEY  = "wall-calendar-notes-v2";
+const MOODS_KEY  = "wall-calendar-moods-v1";
+const THEME_KEY  = "wall-calendar-theme";
 
-function loadNotes() {
+function loadJSON(key) {
   try {
-    const raw = localStorage.getItem(NOTES_KEY);
+    const raw = localStorage.getItem(key);
     return raw ? JSON.parse(raw) : {};
   } catch {
     return {};
   }
 }
 
-function saveNotes(notes) {
+function saveJSON(key, data) {
   try {
-    localStorage.setItem(NOTES_KEY, JSON.stringify(notes));
+    localStorage.setItem(key, JSON.stringify(data));
   } catch {}
 }
 
 export function useCalendar() {
   const today = new Date();
 
-  // ── Navigation state ──────────────────────────────────────────────────────
+  // ── Navigation ────────────────────────────────────────────────────────────
   const [currentDate, setCurrentDate] = useState(today);
-  const [slideDir, setSlideDir] = useState(null); // "left" | "right"
+  const [slideDir, setSlideDir]       = useState(null);
 
-  // ── Theme state ───────────────────────────────────────────────────────────
+  // ── Theme ─────────────────────────────────────────────────────────────────
   const [themeIndex, setThemeIndex] = useState(() => {
     try {
       const saved = localStorage.getItem(THEME_KEY);
@@ -64,31 +65,27 @@ export function useCalendar() {
     localStorage.setItem(THEME_KEY, String(i));
   }, []);
 
-  // ── Date range state ──────────────────────────────────────────────────────
-  const [startDate, setStartDate] = useState(null);
-  const [endDate, setEndDate] = useState(null);
-  const [hoverDate, setHoverDate] = useState(null);
-  const [selecting, setSelecting] = useState(false); // mid-selection
+  // ── Date range ────────────────────────────────────────────────────────────
+  const [startDate,  setStartDate]  = useState(null);
+  const [endDate,    setEndDate]    = useState(null);
+  const [hoverDate,  setHoverDate]  = useState(null);
+  const [selecting,  setSelecting]  = useState(false);
 
   const handleDayClick = useCallback(
     (day) => {
       if (!selecting || !startDate) {
-        // First click — set start
         setStartDate(day);
         setEndDate(null);
         setSelecting(true);
       } else {
-        // Second click — set end
-        if (isBefore(day, startDate)) {
-          // Clicked before start — swap
-          setEndDate(startDate);
-          setStartDate(day);
-        } else if (isSameDay(day, startDate)) {
-          // Same day — deselect
+        if (isSameDay(day, startDate)) {
           setStartDate(null);
           setEndDate(null);
           setSelecting(false);
           return;
+        } else if (isBefore(day, startDate)) {
+          setEndDate(startDate);
+          setStartDate(day);
         } else {
           setEndDate(day);
         }
@@ -106,16 +103,8 @@ export function useCalendar() {
     setSelecting(false);
   }, []);
 
-  const isStart = useCallback(
-    (day) => startDate && isSameDay(day, startDate),
-    [startDate]
-  );
-
-  const isEnd = useCallback(
-    (day) => endDate && isSameDay(day, endDate),
-    [endDate]
-  );
-
+  const isStart   = useCallback((day) => startDate && isSameDay(day, startDate), [startDate]);
+  const isEnd     = useCallback((day) => endDate   && isSameDay(day, endDate),   [endDate]);
   const isInRange = useCallback(
     (day) => {
       const effectiveEnd = endDate || (selecting ? hoverDate : null);
@@ -123,16 +112,18 @@ export function useCalendar() {
       const [s, e] = isAfter(effectiveEnd, startDate)
         ? [startDate, effectiveEnd]
         : [effectiveEnd, startDate];
-      return isWithinInterval(day, { start: s, end: e }) &&
+      return (
+        isWithinInterval(day, { start: s, end: e }) &&
         !isSameDay(day, s) &&
-        !isSameDay(day, e);
+        !isSameDay(day, e)
+      );
     },
     [startDate, endDate, hoverDate, selecting]
   );
 
   const isToday = useCallback((day) => isSameDay(day, today), []);
 
-  // ── Month navigation ──────────────────────────────────────────────────────
+  // ── Navigation ────────────────────────────────────────────────────────────
   const goNext = useCallback(() => {
     setSlideDir("left");
     setCurrentDate((d) => addMonths(d, 1));
@@ -149,7 +140,6 @@ export function useCalendar() {
     setCurrentDate(today);
   }, [currentDate]);
 
-  // Reset slide dir after animation
   useEffect(() => {
     if (slideDir) {
       const t = setTimeout(() => setSlideDir(null), 350);
@@ -157,20 +147,17 @@ export function useCalendar() {
     }
   }, [slideDir]);
 
-  // ── Build calendar grid ───────────────────────────────────────────────────
-  const monthStart = startOfMonth(currentDate);
-  const monthEnd = endOfMonth(currentDate);
-  const daysInMonth = eachDayOfInterval({ start: monthStart, end: monthEnd });
-
-  // getDay: 0=Sun, 1=Mon … 6=Sat. We want Mon=0 offset.
-  const startDow = getDay(monthStart); // 0(Sun)..6(Sat)
+  // ── Grid ──────────────────────────────────────────────────────────────────
+  const monthStart   = startOfMonth(currentDate);
+  const monthEnd     = endOfMonth(currentDate);
+  const daysInMonth  = eachDayOfInterval({ start: monthStart, end: monthEnd });
+  const startDow     = getDay(monthStart);
   const prefixBlanks = startDow === 0 ? 6 : startDow - 1;
 
-  // ── Notes state ───────────────────────────────────────────────────────────
-  const [allNotes, setAllNotes] = useState(loadNotes);
+  // ── Notes ─────────────────────────────────────────────────────────────────
+  const [allNotes, setAllNotes] = useState(() => loadJSON(NOTES_KEY));
   const [draftNote, setDraftNote] = useState("");
 
-  // Derive the key for the current selection
   const noteKey =
     startDate && endDate
       ? `${format(startDate, "yyyy-MM-dd")}__${format(endDate, "yyyy-MM-dd")}`
@@ -178,13 +165,8 @@ export function useCalendar() {
       ? format(startDate, "yyyy-MM-dd")
       : null;
 
-  // Sync draft when selection changes
   useEffect(() => {
-    if (noteKey) {
-      setDraftNote(allNotes[noteKey] || "");
-    } else {
-      setDraftNote("");
-    }
+    setDraftNote(noteKey ? allNotes[noteKey] ?? "" : "");
   }, [noteKey]);
 
   const saveNote = useCallback(
@@ -197,7 +179,7 @@ export function useCalendar() {
         updated[noteKey] = text;
       }
       setAllNotes(updated);
-      saveNotes(updated);
+      saveJSON(NOTES_KEY, updated);
       setDraftNote(text);
     },
     [noteKey, allNotes]
@@ -206,7 +188,9 @@ export function useCalendar() {
   const hasNote = useCallback(
     (day) => {
       const k = format(day, "yyyy-MM-dd");
-      return Object.keys(allNotes).some((key) => key === k || key.startsWith(k + "__") || key.endsWith("__" + k));
+      return Object.keys(allNotes).some(
+        (key) => key === k || key.startsWith(k + "__") || key.endsWith("__" + k)
+      );
     },
     [allNotes]
   );
@@ -218,6 +202,35 @@ export function useCalendar() {
       ? key.split("__").map((d) => new Date(d))
       : [new Date(key)],
   }));
+
+  // ── Moods ─────────────────────────────────────────────────────────────────
+  // Stored as { "yyyy-MM-dd": "great" | "good" | "ok" | "low" | "rough" }
+  const [allMoods, setAllMoods] = useState(() => loadJSON(MOODS_KEY));
+
+  const saveMood = useCallback(
+    (day, moodKey) => {
+      const dk = format(day, "yyyy-MM-dd");
+      const updated = { ...allMoods };
+      if (moodKey) {
+        updated[dk] = moodKey;
+      } else {
+        delete updated[dk];
+      }
+      setAllMoods(updated);
+      saveJSON(MOODS_KEY, updated);
+    },
+    [allMoods]
+  );
+
+  const getMood = useCallback(
+    (day) => allMoods[format(day, "yyyy-MM-dd")] ?? null,
+    [allMoods]
+  );
+
+  const hasMood = useCallback(
+    (day) => !!allMoods[format(day, "yyyy-MM-dd")],
+    [allMoods]
+  );
 
   return {
     // State
@@ -236,6 +249,7 @@ export function useCalendar() {
     noteKey,
     draftNote,
     savedNotesList,
+    allMoods,
     // Handlers
     setHoverDate,
     handleDayClick,
@@ -252,5 +266,8 @@ export function useCalendar() {
     saveNote,
     hasNote,
     setDraftNote,
+    saveMood,
+    getMood,
+    hasMood,
   };
 }

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React from "react";
 import { format, addMonths, subMonths, endOfMonth, startOfMonth } from "date-fns";
 import { ChevronLeft, ChevronRight, CalendarDays, X } from "lucide-react";
 import { DAYS_OF_WEEK, MONTHS, HOLIDAYS } from "../utils/themes";
@@ -18,6 +18,8 @@ export default function CalendarGrid({
   isInRange,
   isToday,
   hasNote,
+  hasMood,
+  getMood,
   setHoverDate,
   handleDayClick,
   clearSelection,
@@ -25,23 +27,21 @@ export default function CalendarGrid({
   goPrev,
   goToToday,
 }) {
-  const [showDataViz, setShowDataViz] = useState(false);
-
-  const year = format(currentDate, "yyyy");
+  const year      = format(currentDate, "yyyy");
   const monthName = MONTHS[currentDate.getMonth()];
 
-  const totalCells = prefixBlanks + daysInMonth.length;
+  const totalCells   = prefixBlanks + daysInMonth.length;
   const trailingCount = totalCells % 7 === 0 ? 0 : 7 - (totalCells % 7);
 
-  const prevMonthEnd = endOfMonth(subMonths(currentDate, 1));
-  const prevDays = Array.from({ length: prefixBlanks }, (_, i) => {
+  const prevMonthEnd  = endOfMonth(subMonths(currentDate, 1));
+  const prevDays      = Array.from({ length: prefixBlanks }, (_, i) => {
     const d = new Date(prevMonthEnd);
     d.setDate(prevMonthEnd.getDate() - (prefixBlanks - 1 - i));
     return d;
   });
 
   const nextMonthStart = startOfMonth(addMonths(currentDate, 1));
-  const nextDays = Array.from({ length: trailingCount }, (_, i) => {
+  const nextDays       = Array.from({ length: trailingCount }, (_, i) => {
     const d = new Date(nextMonthStart);
     d.setDate(i + 1);
     return d;
@@ -50,11 +50,8 @@ export default function CalendarGrid({
   const allCells = [...prevDays, ...daysInMonth, ...nextDays];
 
   const animClass =
-    slideDir === "left"
-      ? "slide-in-left"
-      : slideDir === "right"
-      ? "slide-in-right"
-      : "";
+    slideDir === "left"  ? "slide-in-left"  :
+    slideDir === "right" ? "slide-in-right" : "";
 
   const rangeLabel =
     startDate && endDate
@@ -88,14 +85,7 @@ export default function CalendarGrid({
           </h2>
         </div>
 
-        {/* Nav controls — all same height, no stray icon */}
         <div className="flex items-center gap-1">
-          {/* 
-            DATA VIZ: removed the standalone BarChart2 icon that was a different
-            size from other nav items. Data viz is now toggled via double-clicking
-            the Today button (or we keep it as a tiny dot-toggle below the legend).
-            This keeps the nav row perfectly aligned.
-          */}
           <button
             onClick={goToToday}
             className="font-mono rounded-full border transition-all hover:shadow-sm"
@@ -137,13 +127,11 @@ export default function CalendarGrid({
             background: theme.accentLight,
             color: theme.accentDark,
             padding: "5px 12px 5px 10px",
+            border: `1px solid ${theme.accent}22`,
           }}
         >
           <CalendarDays size={11} style={{ flexShrink: 0 }} />
-          <span
-            className="flex-1 font-mono truncate"
-            style={{ fontSize: "0.7rem" }}
-          >
+          <span className="flex-1 font-mono truncate" style={{ fontSize: "0.7rem" }}>
             {rangeLabel}
           </span>
           <button
@@ -173,8 +161,8 @@ export default function CalendarGrid({
 
         {/* Day cells */}
         {allCells.map((day, i) => {
-          const isOther =
-            i < prefixBlanks || i >= prefixBlanks + daysInMonth.length;
+          const isOther = i < prefixBlanks || i >= prefixBlanks + daysInMonth.length;
+          const moodKey = !isOther ? getMood(day) : null;
           return (
             <DayCell
               key={day.toISOString()}
@@ -184,9 +172,10 @@ export default function CalendarGrid({
               isInRange={isInRange(day)}
               isToday={isToday(day)}
               hasNote={hasNote(day)}
+              hasMood={!isOther && hasMood(day)}
+              moodKey={moodKey}
               theme={theme}
               isOtherMonth={isOther}
-              showDataViz={showDataViz}
               onMouseEnter={() => !isOther && setHoverDate(day)}
               onClick={() => !isOther && handleDayClick(day)}
             />
@@ -246,7 +235,7 @@ export default function CalendarGrid({
         </div>
       )}
 
-      {/* ── Legend + data viz toggle ── */}
+      {/* ── Legend ── */}
       <div
         className="flex items-center justify-between pt-1.5 border-t"
         style={{ borderColor: `${theme.accent}12` }}
@@ -260,21 +249,11 @@ export default function CalendarGrid({
             <span className="w-1.5 h-1.5 rounded-full" style={{ background: theme.accent, opacity: 0.5 }} />
             Holiday
           </span>
+          <span className="flex items-center gap-1" style={{ color: "#b0a898", fontSize: "0.6rem" }}>
+            <span className="w-1.5 h-1.5 rounded-full" style={{ background: "#4caf78" }} />
+            Mood
+          </span>
         </div>
-        {/* Data viz toggle — subtle, doesn't disrupt nav */}
-        <button
-          onClick={() => setShowDataViz((v) => !v)}
-          className="font-mono rounded-full transition-all"
-          style={{
-            fontSize: "0.55rem",
-            padding: "2px 8px",
-            background: showDataViz ? theme.accentLight : "transparent",
-            color: showDataViz ? theme.accentDark : "#c0b8ae",
-            border: `1px solid ${showDataViz ? theme.accent + "40" : theme.accent + "20"}`,
-          }}
-        >
-          {showDataViz ? "◼ productivity" : "◻ productivity"}
-        </button>
       </div>
     </div>
   );

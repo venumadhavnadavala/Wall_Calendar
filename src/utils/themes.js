@@ -4,7 +4,6 @@ export const THEMES = [
     id: "sakura",
     label: "Sakura Spring",
     tag: "Spring",
-    // Cherry blossom trees
     image: "https://images.unsplash.com/photo-1522383225653-ed111181a951?w=800&q=80",
     accent: "#c0737a",
     accentLight: "#fce8ea",
@@ -17,7 +16,6 @@ export const THEMES = [
     id: "desert",
     label: "Desert Canyon",
     tag: "Desert",
-    // Red rock desert canyon — Antelope Canyon style
     image: "https://images.unsplash.com/photo-1509316785289-025f5b846b35?w=800&q=80",
     accent: "#c47a2b",
     accentLight: "#fdf0dc",
@@ -30,7 +28,6 @@ export const THEMES = [
     id: "ocean",
     label: "Ocean Mist",
     tag: "Coast",
-    // Ocean waves coast
     image: "https://images.unsplash.com/photo-1505118380757-91f5f5632de0?w=800&q=80",
     accent: "#2e7ab4",
     accentLight: "#deeef9",
@@ -43,7 +40,6 @@ export const THEMES = [
     id: "forest",
     label: "Forest Canopy",
     tag: "Forest",
-    // Dense green forest
     image: "https://images.unsplash.com/photo-1448375240586-882707db888b?w=800&q=80",
     accent: "#3a7a4a",
     accentLight: "#dff0e4",
@@ -56,7 +52,6 @@ export const THEMES = [
     id: "autumn",
     label: "Autumn Embers",
     tag: "Autumn",
-    // Autumn foliage / fall colors forest path
     image: "https://images.unsplash.com/photo-1477414348463-c0eb7f1359b6?w=800&q=80",
     accent: "#c05a1a",
     accentLight: "#fdeede",
@@ -94,7 +89,32 @@ export const HOLIDAYS = {
   "12-31": { name: "New Year's Eve" },
 };
 
-export function getDayScore(date) {
-  const seed = date.getDate() * 17 + date.getMonth() * 31;
-  return (seed % 70) + 20;
+// ── MOOD SYSTEM ───────────────────────────────────────────────────────────────
+// Replaces the old fake getDayScore() function.
+// Mood entries are stored in localStorage keyed by "yyyy-M-d".
+// Each entry is one of the MOOD_KEYS below.
+
+export const MOODS = [
+  { key: "great", label: "Great",  emoji: "✦", color: "#4caf78" },
+  { key: "good",  label: "Good",   emoji: "◆", color: "#7ab4de" },
+  { key: "ok",    label: "Okay",   emoji: "◇", color: "#e8a0a6" },
+  { key: "low",   label: "Low",    emoji: "▽", color: "#e0a070" },
+  { key: "rough", label: "Rough",  emoji: "▼", color: "#b0a898" },
+];
+
+// Maps mood key → a 0-100 percentage used for the bar chart in Summary
+export const MOOD_PCT = {
+  great: 100,
+  good:  80,
+  ok:    55,
+  low:   35,
+  rough: 15,
+};
+
+export function getMoodColor(moodKey) {
+  return MOODS.find((m) => m.key === moodKey)?.color ?? "#e8a0a6";
+}
+
+export function getMoodPct(moodKey) {
+  return MOOD_PCT[moodKey] ?? 0;
 }

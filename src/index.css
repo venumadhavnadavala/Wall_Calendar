@@ -70,46 +70,27 @@ body {
 
 /* ── PAGE FLIP ANIMATION ─────────────────────────────────────────────────── */
 @keyframes flipIn {
-  from {
-    transform: rotateY(-90deg);
-    opacity: 0;
-  }
-  to {
-    transform: rotateY(0deg);
-    opacity: 1;
-  }
+  from { transform: rotateY(-90deg); opacity: 0; }
+  to   { transform: rotateY(0deg);   opacity: 1; }
 }
 
 @keyframes flipOut {
-  from {
-    transform: rotateY(0deg);
-    opacity: 1;
-  }
-  to {
-    transform: rotateY(90deg);
-    opacity: 0;
-  }
+  from { transform: rotateY(0deg);  opacity: 1; }
+  to   { transform: rotateY(90deg); opacity: 0; }
 }
 
-.flip-in {
-  animation: flipIn 0.25s ease-out forwards;
-  transform-origin: left center;
-}
-
-.flip-out {
-  animation: flipOut 0.2s ease-in forwards;
-  transform-origin: right center;
-}
+.flip-in  { animation: flipIn  0.25s ease-out forwards; transform-origin: left center; }
+.flip-out { animation: flipOut 0.2s  ease-in  forwards; transform-origin: right center; }
 
 /* ── MONTH SLIDE ANIMATIONS ──────────────────────────────────────────────── */
 @keyframes slideInRight {
-  from { transform: translateX(20px); opacity: 0; }
-  to   { transform: translateX(0); opacity: 1; }
+  from { transform: translateX(20px);  opacity: 0; }
+  to   { transform: translateX(0);     opacity: 1; }
 }
 
 @keyframes slideInLeft {
   from { transform: translateX(-20px); opacity: 0; }
-  to   { transform: translateX(0); opacity: 1; }
+  to   { transform: translateX(0);     opacity: 1; }
 }
 
 .slide-in-right { animation: slideInRight 0.28s ease-out forwards; }
@@ -118,7 +99,7 @@ body {
 /* ── SHIMMER LOADING ─────────────────────────────────────────────────────── */
 @keyframes shimmer {
   0%   { background-position: -400px 0; }
-  100% { background-position: 400px 0; }
+  100% { background-position:  400px 0; }
 }
 
 .shimmer {
@@ -146,16 +127,9 @@ body {
 }
 
 /* ── RANGE CORNERS ───────────────────────────────────────────────────────── */
-.range-start { border-radius: 50% 0 0 50% !important; }
-.range-end   { border-radius: 0 50% 50% 0 !important; }
+.range-start     { border-radius: 50% 0 0 50% !important; }
+.range-end       { border-radius: 0 50% 50% 0 !important; }
 .range-start.range-end { border-radius: 50% !important; }
-
-/* ── DATA VIZ BAR HOVER ──────────────────────────────────────────────────── */
-.day-bar:hover {
-  opacity: 0.85;
-  transform: scaleY(1.1);
-  transform-origin: bottom;
-}
 
 /* ── MOBILE CARD LAYOUT ──────────────────────────────────────────────────── */
 @media (max-width: 640px) {

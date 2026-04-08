@@ -40,26 +40,28 @@ export default function WallCalendar() {
       />
 
       {/* ── Calendar card ── */}
-      {/* 
-        KEY FIX: We do NOT use overflow-hidden on the outer card wrapper.
-        Instead, each inner section clips itself. This lets the rounded-[2rem]
-        corners be fully visible without being cut off by the viewport.
-        We use a clip-path trick on the inner content areas instead.
-      */}
       <div
         className="w-full paper-texture relative z-10"
         style={{
           maxWidth: 1040,
-          /* Constrain height so it fits viewport with padding */
           maxHeight: "calc(100vh - clamp(32px, 6vw, 80px))",
           borderRadius: "2rem",
-          border: "1px solid rgba(255,255,255,0.6)",
-          boxShadow:
-            "0 40px 80px -20px rgba(50,50,93,0.14), 0 20px 50px -20px rgba(0,0,0,0.08), inset 0 -2px 6px rgba(0,0,0,0.02)",
+          /* Layered border system for authentic card feel */
+          border: `1px solid ${theme.accent}22`,
+          outline: `4px solid ${theme.accentLight}`,
+          outlineOffset: "0px",
+          boxShadow: `
+            0 0 0 5px ${theme.accentLight}80,
+            0 2px 0 6px ${theme.accent}08,
+            0 40px 80px -20px rgba(50,50,93,0.14),
+            0 20px 50px -20px rgba(0,0,0,0.08),
+            inset 0 -2px 6px rgba(0,0,0,0.02)
+          `,
           backdropFilter: "blur(20px)",
           display: "flex",
           flexDirection: "column",
-          overflow: "hidden", /* needs to be here for border-radius to clip children */
+          overflow: "hidden",
+          transition: "border-color 0.6s ease, box-shadow 0.6s ease",
         }}
       >
         {/* Spiral binding row */}
@@ -82,7 +84,7 @@ export default function WallCalendar() {
           className="hidden md:grid flex-1 min-h-0"
           style={{ gridTemplateColumns: "1fr 1fr" }}
         >
-          {/* Left: Hero — fills full height */}
+          {/* Left: Hero */}
           <div
             className="relative overflow-hidden"
             style={{ boxShadow: "inset -18px 0 28px rgba(0,0,0,0.22)" }}
@@ -107,7 +109,7 @@ export default function WallCalendar() {
             </div>
           </div>
 
-          {/* Right: Calendar grid + Notes — scrollable as a unit */}
+          {/* Right: Calendar grid + Notes */}
           <div
             className="flex flex-col min-h-0"
             style={{
@@ -116,18 +118,15 @@ export default function WallCalendar() {
               overflowY: "auto",
             }}
           >
-            {/* Calendar grid — fixed, no scroll */}
             <div className="flex-shrink-0">
               <CalendarGrid {...cal} />
             </div>
 
-            {/* Divider */}
             <div
               className="flex-shrink-0 mx-5"
               style={{ height: 1, background: "rgba(0,0,0,0.06)" }}
             />
 
-            {/* Notes — grows to fill remaining space */}
             <div className="flex-1 min-h-0">
               <NotesPanel {...cal} />
             </div>
