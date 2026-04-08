@@ -61,7 +61,7 @@ src/
 ## 🔗 Submission Links
 
 * [cite_start]**Live Demo**: [wall-calendar-two.vercel.app](https://wall-calendar-two.vercel.app/) [cite: 44]
-* [cite_start]**Video Demonstration**: [Insert Link to Loom/YouTube] [cite: 42, 43]
+* [cite_start]**Video Demonstration**: https://drive.google.com/drive/folders/1clDDNaYeyflU2c0V2yPvfG2QUtkrQD1E?usp=sharing [cite: 42, 43]
 
 ## 🛠 Tech Stack
 
