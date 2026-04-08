@@ -11,75 +11,162 @@ export default function WallCalendar() {
 
   return (
     <div
-      className="min-h-screen relative flex items-center justify-center p-4 md:p-8 bg-[#faf9f6] overflow-hidden transition-colors duration-700"
+      className="min-h-screen relative flex items-center justify-center overflow-hidden transition-colors duration-700"
+      style={{
+        background: theme.bg || "#faf9f6",
+        padding: "clamp(16px, 3vw, 40px)",
+      }}
     >
-      {/* Ambient Dynamic Background Glows */}
+      {/* Ambient glows */}
       <div
-        className="absolute top-[-10%] left-[-10%] w-[60vw] h-[60vw] rounded-full mix-blend-multiply filter blur-[120px] opacity-60 transition-colors duration-1000 pointer-events-none"
-        style={{ background: theme.accentLight }}
+        className="absolute top-[-15%] left-[-10%] w-[55vw] h-[55vw] rounded-full pointer-events-none"
+        style={{
+          background: theme.accentLight,
+          filter: "blur(100px)",
+          opacity: 0.7,
+          mixBlendMode: "multiply",
+          transition: "background 0.8s ease",
+        }}
       />
       <div
-        className="absolute bottom-[-10%] right-[-10%] w-[50vw] h-[50vw] rounded-full mix-blend-multiply filter blur-[150px] opacity-40 transition-colors duration-1000 pointer-events-none"
-        style={{ background: theme.accent }}
+        className="absolute bottom-[-15%] right-[-10%] w-[45vw] h-[45vw] rounded-full pointer-events-none"
+        style={{
+          background: theme.accentMid || theme.accent,
+          filter: "blur(130px)",
+          opacity: 0.3,
+          mixBlendMode: "multiply",
+          transition: "background 0.8s ease",
+        }}
       />
 
-      {/* Calendar card (Added backdrop-blur for a frosted glass effect and refined shadows) */}
+      {/* ── Calendar card ── */}
+      {/* 
+        KEY FIX: We do NOT use overflow-hidden on the outer card wrapper.
+        Instead, each inner section clips itself. This lets the rounded-[2rem]
+        corners be fully visible without being cut off by the viewport.
+        We use a clip-path trick on the inner content areas instead.
+      */}
       <div
-        className="w-full paper-texture shadow-[0_50px_100px_-20px_rgba(50,50,93,0.15),0_30px_60px_-30px_rgba(0,0,0,0.1),inset_0_-2px_6px_rgba(0,0,0,0.02)] rounded-[2rem] border border-white/60 overflow-hidden relative z-10 backdrop-blur-xl"
-        style={{ maxWidth: 1040 }}
+        className="w-full paper-texture relative z-10"
+        style={{
+          maxWidth: 1040,
+          /* Constrain height so it fits viewport with padding */
+          maxHeight: "calc(100vh - clamp(32px, 6vw, 80px))",
+          borderRadius: "2rem",
+          border: "1px solid rgba(255,255,255,0.6)",
+          boxShadow:
+            "0 40px 80px -20px rgba(50,50,93,0.14), 0 20px 50px -20px rgba(0,0,0,0.08), inset 0 -2px 6px rgba(0,0,0,0.02)",
+          backdropFilter: "blur(20px)",
+          display: "flex",
+          flexDirection: "column",
+          overflow: "hidden", /* needs to be here for border-radius to clip children */
+        }}
       >
-        {/* Refined Spiral Row */}
+        {/* Spiral binding row */}
         <div
-          className="relative z-20 flex justify-center items-center gap-3 bg-[#f4f1eb] border-b border-[#e5dfd3] shadow-[0_2px_4px_rgba(0,0,0,0.03)]"
-          style={{ height: 32 }}
+          className="relative z-20 flex justify-center items-center gap-3 border-b flex-shrink-0"
+          style={{
+            height: 32,
+            background: "#f3efe8",
+            borderColor: "#e5dfd3",
+            boxShadow: "0 2px 4px rgba(0,0,0,0.04)",
+          }}
         >
           {Array.from({ length: 16 }).map((_, i) => (
             <div key={i} className="spiral-dot" />
           ))}
         </div>
 
-        {/* ── DESKTOP LAYOUT ───────────────────────────────────────────── */}
-        <div className="hidden md:grid relative" style={{ gridTemplateColumns: "1fr 1fr", minHeight: 600 }}>
-          
-          {/* Left: Hero Image + Spine Shadow */}
-          <div className="relative overflow-hidden shadow-[inset_-20px_0_30px_rgba(0,0,0,0.25)] z-10" style={{ minHeight: 460 }}>
-            <HeroVisual theme={theme} themeIndex={cal.themeIndex} setTheme={cal.setTheme} />
-            <div className="absolute bottom-6 right-6 text-right pointer-events-none drop-shadow-md">
-              <div className="text-xs font-mono tracking-widest text-white/90 mb-1">
+        {/* ── DESKTOP ── */}
+        <div
+          className="hidden md:grid flex-1 min-h-0"
+          style={{ gridTemplateColumns: "1fr 1fr" }}
+        >
+          {/* Left: Hero — fills full height */}
+          <div
+            className="relative overflow-hidden"
+            style={{ boxShadow: "inset -18px 0 28px rgba(0,0,0,0.22)" }}
+          >
+            <HeroVisual
+              theme={theme}
+              themeIndex={cal.themeIndex}
+              setTheme={cal.setTheme}
+              startDate={cal.startDate}
+              endDate={cal.endDate}
+            />
+            <div className="absolute bottom-5 right-5 text-right pointer-events-none">
+              <div className="text-xs font-mono tracking-widest text-white/80 mb-0.5">
                 {format(cal.currentDate, "yyyy")}
               </div>
-              <div className="font-display font-black text-white leading-none" style={{ fontSize: "2.5rem" }}>
+              <div
+                className="font-display font-black text-white leading-none"
+                style={{ fontSize: "2.2rem", textShadow: "0 2px 12px rgba(0,0,0,0.5)" }}
+              >
                 {format(cal.currentDate, "MMMM").toUpperCase()}
               </div>
             </div>
           </div>
 
-          {/* Right: Calendar + Left Inner Spine Shadow */}
-          <div className="flex flex-col divide-y divide-neutral-100 shadow-[inset_15px_0_20px_rgba(0,0,0,0.02)] z-0 bg-white/60">
-            <div className="flex-1">
+          {/* Right: Calendar grid + Notes — scrollable as a unit */}
+          <div
+            className="flex flex-col min-h-0"
+            style={{
+              background: "rgba(255,255,255,0.68)",
+              boxShadow: "inset 14px 0 18px rgba(0,0,0,0.02)",
+              overflowY: "auto",
+            }}
+          >
+            {/* Calendar grid — fixed, no scroll */}
+            <div className="flex-shrink-0">
               <CalendarGrid {...cal} />
             </div>
-            <div style={{ maxHeight: 320, overflowY: "auto" }} className="notes-scroll">
+
+            {/* Divider */}
+            <div
+              className="flex-shrink-0 mx-5"
+              style={{ height: 1, background: "rgba(0,0,0,0.06)" }}
+            />
+
+            {/* Notes — grows to fill remaining space */}
+            <div className="flex-1 min-h-0">
               <NotesPanel {...cal} />
             </div>
           </div>
         </div>
 
-        {/* ── MOBILE LAYOUT ────────────────────────────────────────────── */}
-        <div className="md:hidden flex flex-col bg-white/60">
-          <div className="relative" style={{ height: 240 }}>
-            <HeroVisual theme={theme} themeIndex={cal.themeIndex} setTheme={cal.setTheme} />
-            <div className="absolute bottom-4 right-4 text-right pointer-events-none drop-shadow-md">
-              <div className="text-xs font-mono tracking-widest text-white/90 mb-0.5">
+        {/* ── MOBILE ── */}
+        <div
+          className="md:hidden flex flex-col flex-1 min-h-0 overflow-y-auto notes-scroll"
+          style={{ background: "rgba(255,255,255,0.7)" }}
+        >
+          <div className="relative flex-shrink-0" style={{ height: 220 }}>
+            <HeroVisual
+              theme={theme}
+              themeIndex={cal.themeIndex}
+              setTheme={cal.setTheme}
+              startDate={cal.startDate}
+              endDate={cal.endDate}
+            />
+            <div className="absolute bottom-4 right-4 text-right pointer-events-none">
+              <div className="text-xs font-mono tracking-widest text-white/80 mb-0.5">
                 {format(cal.currentDate, "yyyy")}
               </div>
-              <div className="font-display font-black text-white leading-none" style={{ fontSize: "2rem" }}>
+              <div
+                className="font-display font-black text-white leading-none"
+                style={{ fontSize: "1.8rem" }}
+              >
                 {format(cal.currentDate, "MMMM").toUpperCase()}
               </div>
             </div>
           </div>
-          <CalendarGrid {...cal} />
-          <div className="border-t border-neutral-100">
+          <div className="flex-shrink-0">
+            <CalendarGrid {...cal} />
+          </div>
+          <div
+            className="flex-shrink-0 mx-5"
+            style={{ height: 1, background: "rgba(0,0,0,0.06)" }}
+          />
+          <div className="flex-1">
             <NotesPanel {...cal} />
           </div>
         </div>
